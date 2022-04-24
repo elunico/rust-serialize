@@ -5,15 +5,16 @@ A custom binary format for serializing structures in Rust
 The data is serialized as a sequence of bytes. We represent this usually using a slice like `&[u8]` or a Vec like `Vec<u8>`
 
 The format is as follows
-  Part A  -  `u8`: the number of fields in the struct
-  Part B  -  `u8`: the length of the name of the struct
-  Part C  -  Part B number of `u8`: The UTF-8 encoded name of the struct
-  Part D  -  16 zero bits - Indicates separation between the header of the struct (Parts A to C) from the fields. This allows the header to be expanded in the future by adding more sections. Implementations should seek to find 16 continuous 0 bits before attempting to read fields as more data in the future may be slotted between Part C and the 16 zero bits indicating the start of the field
-  Part E  -  `u8`: length of the name of the first field
-  Part F  -  Part E number of `u8`: The UTF-8 encoded name of the first field of the struct
-  Part G  -  Variable `u8`: The data composing the value. The value must conform to a proper trait and have its own Deserialize method. In addition, use of the rust built in `std::mem::sizeof` obviates the need to store the size of the field
+   -  Part A  -  `u8`: the number of fields in the struct
+   -  Part B  -  `u8`: the length of the name of the struct
+   -  Part C  -  Part B number of `u8`: The UTF-8 encoded name of the struct
+   -  Part D  -  16 zero bits - Indicates separation between the header of the struct (Parts A to C) from the fields. This allows the header to be expanded in the future by adding more sections. Implementations should seek to find 16 continuous 0 bits before attempting to read fields as more data in the future may be slotted between Part C and the 16 zero bits indicating the start of the field
+   -  Part E  -  `u8`: length of the name of the first field
+   -  Part F  -  Part E number of `u8`: The UTF-8 encoded name of the first field of the struct
+   -  Part G  - 8 x `u8`: The Big Endian size of the serialized field. This represents a usize in Big Endian format. It is the length of bytes that compose the serialized field
+   -  Part H  -  Part G number of `u8`: The data composing the value. The value must conform to the `TSerializable` trait and have its own deserialize method.
 
-  Parts E through G repeat for Part A repetitions for each field in the struct
+  Parts E through H repeat for Part A repetitions for each field in the struct
 
 ## Implementing Serialization
 Serializiation is accomplished through the implementation of the `TSerializable` trait.
